@@ -1,0 +1,133 @@
+---
+title: "Graphical Descriptions of Categorical Variables"
+author: "Brad Cannell"
+date: "Created: 2019-04-22 <br> Updated: `r Sys.Date()`"
+output: 
+  html_notebook: 
+    toc: true
+    toc_float: true
+    css: "../../css/lm-markdown-styles.css"
+---
+
+
+
+2019-07-08: I think for now we won't include either of the "graphical description" lessons. They already get graphical descriptions in the data visualization learning module.
+
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(magrittr)
+```
+
+# Introduction
+
+Now that you know how to numerically describe categorical variables, we’ll briefly take a look at graphically describing categorical variables. You should already be familiar with creating plots using `ggplot2` from the _Data Visualization_ learning module. 
+
+While graphical descriptions can be a little bit limited in their depth of analysis, they are fantastic methods for quickly getting a feel for your data. Additionally, I find that graphical descriptions of your variables often have much greater impact than numerical descriptions. This is particularly true for non-technical audiences.
+
+Here we’re simulating some data that contains information about sex and body mass index for 20 people. Let’s go ahead and use some of the techniques we learned in the last section to calculate the frequency for each BMI category in this sample.
+
+```{r}
+# Load the tidyverse package to make our code easier to read
+library(tidyverse)
+```
+
+```{r}
+# Simulate some data
+bmi_data <- tribble(
+  ~id,   ~sex,     ~bmi,
+  "001", "Female", "Not Overweight or Obese",
+  "002", "Male",   "Not Overweight or Obese",
+  "003", "Female", "Not Overweight or Obese",
+  "004", "Female", "Not Overweight or Obese",
+  "005", "Female", "Not Overweight or Obese",
+  "006", "Female", "Overweight",
+  "007", "Female", "Not Overweight or Obese",
+  "008", "Male",   "Not Overweight or Obese",
+  "009", "Male",   "Not Overweight or Obese",
+  "010", "Male",   "Overweight",
+  "011", "Female", "Not Overweight or Obese",
+  "012", "Female", "Not Overweight or Obese",
+  "013", "Female", "Not Overweight or Obese",
+  "014", "Female", "Not Overweight or Obese",
+  "015", "Male",   "Overweight",
+  "016", "Female", "Overweight",
+  "017", "Male",   "Obese",
+  "018", "Female", NA,
+  "019", "Male",   "Not Overweight or Obese",
+  "020", "Female", "Obese",
+)
+```
+
+```{r}
+bmi_data %>% 
+  count(bmi) %>% 
+  mutate(percent = (n / sum(n) * 100) %>% round(2))
+```
+
+Great, so most of the participants in this sample are neither overweight nor obese. Additionally, we have one participant for which BMI is missing. At this point, let's go ahead and drop the row with a missing value for BMI.
+
+```{r}
+bmi_data <- filter(bmi_data, !is.na(bmi))
+```
+
+# Bar chart
+
+Now let’s take a look at frequency of bmi in graphical form. Specifically, let's look at a basic vertical bar chart. We'll make it using the `ggplot2` package.
+
+```{r}
+ggplot(data = bmi_data) +
+  geom_bar(mapping = aes(x = bmi))
+```
+
+**Here's what we did above:**
+
+* We passed the bmi_data to the `data` parameter of the `ggplot()` function above. This tells R that we want to plot the data and/or summary statistics about the data contained in bmi_data.
+
+* We added a `geom_bar` layer to our plot and mapped bmi to the x-axis aesthetic. By default, R will count the number of observations for each category of bmi and set the height of the bar equal to that count.
+
+This is a great basic plot we can use to quickly visualize differences in BMI frequencies in our data. And, it was really easy to create!
+
+We can customize these graphs quite a bit if we take the time to learn all the options available in `ggplot2`. I'm not going to cover them all here, but I will quickly go over a handful of changes that we can use to improve this plot. Believe it or not, people have spent a lot of time trying to understand what separates a "good" plot from a "bad" plot. If you're interested in this topic, I recommend the book _Storytelling with Data: A Data Visualization Guide for Business Professionals_ by Cole Nussbaumer Knaflic. [There is also a blog available here](http://www.storytellingwithdata.com/). In my opinion, the bottom line is this: You want to make a plot that conveys your message to your audience as effectively (i.e., with little thought required on their part) and ethically as possible. In that sense, not all plots are equal.
+
+```{r}
+ggplot(data = bmi_data) +
+  geom_bar(
+    mapping = aes(x = fct_reorder(bmi, bmi, .fun = length, .desc = FALSE)), 
+    fill = c("#cfcfd1", "#cfcfd1", "#1526a3")
+  ) +
+  scale_x_discrete(name = "BMI Category") +
+  scale_y_continuous(name = "Count of Participants") +
+  coord_flip() +
+  theme_classic()
+```
+
+**Here's what we did above:**
+
+* First, we reordered the categories using `fct_reorder(bmi, bmi, .fun = length, .desc = FALSE)`. You can read more about that function [here](https://www.rdocumentation.org/packages/forcats/versions/0.4.0/topics/fct_reorder). This is a really good best practice to learn right away. 
+
+* We added a `geom_bar` layer to our plot and mapped bmi to the x-axis aesthetic. By default, R will count the number of observations for each category of bmi and set the height of the bar equal to that count.
+
+* We used fill colors to emphasize the main message of this plot -- most individuals in our sample were not overweight or obese.
+
+* We used `scale_x_discrete(name = "BMI Category")` to change the x-axis label (becomes the y-axis after using `coor_flip()`). We used `scale_x_discrete()` instead of `scale_x_continuous()` because BMI is a discrete variable (i.e. only takes on 3 discrete values).
+
+* We used `scale_y_continuous(name = "Count of Participants")` to change the y-axis label (becomes the x-axis after using `coor_flip()`). We used `scale_y_continuous()` instead of `scale_y_discrete()` because count is a continuous variable (i.e. can theoretically take on any whole number).
+
+* We used `coord_flip()` to turn our vertical bar plot into a horizontal bar plot. As is eluded to above, `coord_flip()` transposes our axes as well.
+
+* Finally, we used `theme_classic()` to get rid of the background colors and lines on the plot. In general, a white background without unnecissary lines and visual distractions makes for a cleaner, more effective plot.
+
+This is a great basic plot we can use to quickly visualize differences in BMI frequencies in our data. And, it was really easy to create!
+
+
+# Additional resources
+
+* [Storytelling with Data: A Data Visualization Guide for Business Professionals](http://www.storytellingwithdata.com/)
+
+* [data visualization guidelines](https://material.io/design/communication/data-visualization.html#principles)
+
+* [Ggplot2 Reference](https://ggplot2.tidyverse.org/reference/index.html)

@@ -1,0 +1,47 @@
+/*=============================================================================
+CSS Style Sheet for Learning Module Pages
+Author: Brad Cannell
+Created: 2019-05-06
+=============================================================================*/
+
+
+/* ============================================================================
+Temporary - prototyping
+=============================================================================*/
+
+/*
+This just creates a block of color that will serve as a placeholder until I
+add a real banner image.
+*/
+.banner {
+  height: 400px;
+  background: #F99;
+  margin-bottom: 2rem;
+}
+
+
+/*=============================================================================
+Base styles
+=============================================================================*/
+.footer{
+  margin-top: 3rem;
+  border-top: 1px solid #D3D3D3;
+}
+
+
+/*=============================================================================
+Modify Bootstrap
+=============================================================================*/
+
+/* Make the module assignment time pills all the same width */
+.badge-pill {
+  width: calc(57px + 16px);
+}
+
+/*
+I want to center the banner image when it isn't wide enough to span the entire 
+width of the body.
+*/
+.center-banner-img {
+  text-align: center;
+}

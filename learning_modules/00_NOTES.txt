@@ -1,0 +1,1 @@
+This directory is for the module overview pages. Individual lesson markdown files should go into a separate folder in this directory. 

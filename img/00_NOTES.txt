@@ -1,0 +1,1 @@
+This image folder is not for images used in individual learning modules. They have their own image folders.
