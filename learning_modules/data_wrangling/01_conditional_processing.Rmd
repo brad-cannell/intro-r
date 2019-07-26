@@ -1,0 +1,146 @@
+---
+title: "Conditional Processing"
+author: "Brad Cannell"
+date: "Created: 2019-07-20 <br> Updated: `r Sys.Date()`"
+output: 
+  html_notebook: 
+    toc: true
+    toc_float: true
+    css: "../../css/lm-markdown-styles.css"
+---
+
+```{r echo=FALSE}
+# Load the Tidyverse package
+library(tidyverse)
+```
+
+```{r}
+class <- tibble(
+  age    = c(32, 30, 32, 29, 24, 38, 25, 24, 48, 29, 22, 29, 24, 28, 24, 25, 25, 
+             22, 25, 24, 25, 24, 23, 24, 31, 24, 29, 24, 22, 23, 26, 23, 24, 25, 
+             24, 33, 27, 25, 26, 26, 26, 26, 26, 27, 24, 43, 25, 24, 27, 28, 29, 
+             24, 26, 28, 25, 24, 26, 24, 26, 31, 24, 26, 31, 34, 26, 25, 27, NA),
+  gender = c(2, 1, 1, 2, 1, 1, 1, 2, 2, 2, 1, 1, 2, 1, 1, 1, 1, 2, 2, 1, 1, 1, 
+             1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 
+             1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 2, 1, 2, 1, 1, 1, 2, 
+             1, NA),
+  ht_in  = c(70, 63, 62, 67, 67, 58, 64, 69, 65, 68, 63, 68, 69, 66, 67, 65, 
+             64, 75, 67, 63, 60, 67, 64, 73, 62, 69, 67, 62, 68, 66, 66, 62, 
+             64, 68, NA, 68, 70, 68, 68, 66, 71, 61, 62, 64, 64, 63, 67, 66, 
+             69, 76, NA, 63, 64, 65, 65, 71, 66, 65, 65, 71, 64, 71, 60, 62, 
+             61, 69, 66, NA),
+  wt_lbs = c(216, 106, 145, 195, 143, 125, 138, 140, 158, 167, 145, 297, 146, 
+             125, 111, 125, 130, 182, 170, 121, 98, 150, 132, 250, 137, 124, 
+             186, 148, 134, 155, 122, 142, 110, 132, 188, 176, 188, 166, 136, 
+             147, 178, 125, 102, 140, 139, 60, 147, 147, 141, 232, 186, 212, 
+             110, 110, 115, 154, 140, 150, 130, NA, 171, 156, 92, 122, 102, 
+             163, 141, NA)
+) %>% 
+  mutate(gender = factor(gender, levels = c(1, 2), labels = c("Female", "Male"))) %>% 
+  print()
+```
+
+# Categorizing continuous variables
+
+<!-- In general, quantiles are a bad idea. Against quantiles: categorization of continuous variables in epidemiologic research, and its discontents -->
+
+<!-- Get the equation for calculating BMI  https://www.cdc.gov/healthyweight/assessing/bmi/adult_bmi/index.html#Interpreted -->
+
+<!-- Categorize BMI into 3 levels https://www.cdc.gov/obesity/adult/defining.html -->
+
+When conducting an analysis, there are often times when we want or need to group a continuous variable into discrete categories. Common examples in epidemiologic research include creating age groups or body mass index (BMI) categories. I'll demonstrate both below.
+
+<!-- Insert slide about if_else() function -->
+
+```{r}
+class <- class %>% 
+  mutate(
+    age_group = if_else(age < 30, 1, 2, NA_real_),
+    age_group = factor(age_group, labels = c("Younger than 30", "30 and Older"))
+  ) %>% 
+  select(age, age_group, everything())
+class
+```
+
+**Here's what we did above:** 
+
+* We added a new variable to the class data frame called "age_group." In this case, every person who has a non-missing value of age...
+
+
+```{r}
+class <- class %>% 
+  mutate(
+    bmi = (wt_lbs / ht_in^2 * 703),
+    bmi_3cat = case_when(
+      bmi < 25             ~ 1,
+      bmi >= 25 & bmi < 30 ~ 2, # Make sure to type "bmi" twice!
+      bmi >= 30            ~ 3 
+    )
+  )
+class
+```
+
+
+So far, you’ve learned to read in data and create SAS data sets. However, up to this point you have generally had to accept the data just as it is. In this lesson you will begin to manipulate the data, so that it’s more useful for your specific needs. 
+As SAS programmers there will often be times that you want to modify your data or your analysis in some way based on the value of one or more variables.
+Maybe you only want to look at female participants in your data set, or individuals of a certain age. Perhaps you decide that you want to create a variable that represents the region of the country someone is from, based on knowledge of the state they are from. 
+These are just a couple of examples of an almost infinite number of ways in which you can use conditional processing in SAS. It’s called conditional processing because you type in a set of conditions, SAS evaluates those conditions and then executes or does not execute some process or procedure based on whether or not these conditions are met.
+As a silly example, let’s say that I want my daughter to wear a raincoat if it’s raining outside. So I give her a command: “If it’s raining outside, make sure to wear your raincoat please.” In this hypothetical fantasy world, she then says, “yes, dad,” goes to the window to see if it’s raining and then either puts on, or does not put on her raincoat depending on if the condition (raining) is met.
+Another commonly used term for conditional processing is “if-then statements,” or “if-then-else statements.” Just like I have to tell my daughter to put on a raincoat, I have to issue SAS commands in order to get the results I want. In order for SAS to execute these commands for conditional processing, I have to put them in a form that SAS understands. One such form is the IF-THEN-ELSE statement.
+So, if SAS were my daughter, I would say if it’s raining outside, then put on a raincoat. If it’s not raining outside, then don’t put on a raincoat.
+More generally, the IF-THEN statement can be written in this way. The IF-THEN statement executes a SAS statement for observations that meet certain conditions. In the IF-THEN statement the expression is a sequence of operands and operators. They define a condition for selecting observations. The statement after the keyword THEN can be any executable SAS statement, such as the assignment statement.
+In this example, the expression tests the values of two variables - systolic blood pressure and diastolic blood pressure. The statement after the keyword THEN assigns a value to the variable hypertension.
+Expressions can include variables like job_title and ht_in. They can also include constants. Constants can have character values like married or single, or they can be numeric. Character constants must be enclosed in quotation marks, but numeric constants should not. Taken together, the variables and constants make up the operands of an expression. Additionally, expressions use operators to specify the conditions that SAS will evaluate.
+These are examples of commonly used comparison operators. Comparison operators compare a variable with a constant or another variable.You can use either the symbol or the mnemonic in your code.
+Look over these examples of comparison operators used in IF-THEN statements.
+Here is a list of commonly used arithmetic operators, and some examples of how they may be used in IF-THEN statements. As these examples demonstrate, both comparison and arithmetic operators can be used in the same statement.
+Logical operators combine or modify expressions. You can use either the symbol or the mnemonic in your code. Here you can see the logical operators that are available, and a few examples of how the may be used in a IF-THEN statements.
+When using Boolean operators , remember that the “and” operator has precedence over the or operator. 
+That is, a statement such as the following:
+If x and y or z
+Is equivalent to:
+If (x and y) or z
+If you want to perform the “or” operation before the “and” operation, use parentheses like this:
+If x and (y or z)
+As a side note: the “not” operator, which wasn’t demonstrated here, has the highest precedence of all.
+You were already introduced to assignment statements in the last module. As a reminder, you can use an assignment statement in any DATA step to transform variables, create variables, calculate new values for variables, and more. To do this, the assignment statement evaluates an expression and assigns the resulting value to a variable. The general form of the assignment statement is shown here.
+In this example, let’s say that you discover that three mosquito traps were misclassified as light traps when they were actually chemical attractant traps. You write a SAS program to change trap type from 2 to 1 for these three traps. 
+When you run this program, the IF-THEN statement will execute once for each observation in the data set. If the trap number doesn’t equal the specified value, the value of type doesn’t change for that observation. In this case, the value of trap in the program data vector does not match the value in the first IF-THEN statement, so the value of type remains 2. The expression in the next two IF-THEN statements are also false, so type continues to have a value of 2 for this observation. Next SAS reaches the RUN statement, writes the observation currently in the program data vector out to the temporary SAS data set called example,
+and then reads in the next observation from ntrhd.mosquito into the PDV. All the expressions are false for this observation as well.
+Eventually SAS gets to this observation. This time, the condition in the first IF-THEN statement is true.
+So, SAS changes the value of type to one for this observation. The remaining IF-THEN statements are false for this observation. Notice that these IF-THEN statements are mutually exclusive. No more than one of them can be true at a time. Therefore, once SAS encounters a true statement, checking the other statements is a waste of time and computing power.
+Adding the keyword ELSE is much more efficient. When you specify else, and one condition is true, SAS skips the remaining conditions.
+Now you are going to prepare and import the data from a survey like the one you took on the first day of this course. You will use this data to practice conditional processing using IF-THEN-ELSE statements.
+So here you essentially have two rows with variable names: The first row gives a generic Letter/Number name, and second row gives the entire text of each survey question. 
+Which do you think is better for your purposes?
+Then you can see that there are some character variables containing some sort of automatically generated response id, name, ip address, and some other stuff that you don’t really care about. 
+Next you see that start date and end date are filled with a bunch of hashtags. All this means is that the column isn’t wide enough to display the data. If you double click the line in the column header between column h and column i, and between column I and column j, they will widen and the data will be displayed.
+That’s interesting. Notice anything different about these dates? They include the date and the time that the survey was started and completed.
+Finally, you see all of your substantive questions and values representing your responses. But look at Q11 and Q12. 
+Are these numeric variables or character variables? How will you deal with these?
+Now you could ahead and do all the coding necessary to read this into to SAS as a .cvs file; however, I think it’s much easier to save it as a excel file and import it into SAS. Remember, you always want to keep the original raw data file intact, so the first thing you will do is “Save as”
+In the ‘save as’ menu you can ahead and accomplish a couple things. First, let’s name the new file something more simple.
+Next, let’s go ahead and convert this into an excel file using the “format” drop-down menu.
+Now let’s take care of the two header rows. I’ll start by deleting the very wordy second row.
+Why you’re at it, let’s go ahead and get rid of the first 7 columns. I’m not really interested in any of this information.
+Now you have something that should be a little bit more straightforward to import into SAS. There are other changes that you could make right here in the excel file; however, for instructional purposes I would like you to make these changes in SAS. So, let’s save this once more, and then import it into SAS.
+I have already created a new SAS library called class. I have also imported the class survey data using the import wizard, and saved the new SAS data set in the class library.
+And here is the data. Notice that there are no unique identifiers associated with each observation. Let’s go ahead and give each participant an id number.
+To assign sequential numbers to observations in a data set in SAS, create a variable using _N_. You’ve already learned that _N_ is created in the PDV, but not output to the new SAS data set. In this program we are creating a new variable in the PDV and setting it equal to the value of _N_ for each observation. Although _N_ still isn’t written to the SAS data set survey2, the variable id is, and it contains the value of _N_ for each observation. This is a really handy way of creating a sequentially numbered variable in SAS.
+Now it is not necessary to make id the first variable in the SAS data set. However, by convention, this is usually done, and it’s something I like to do. One, of many different ways to do this is with the RETAIN statement in a data step. You simply type the keyword retain, and then type the variables in the order you want them. Any variables that aren’t specifically listed in the RETAIN statement will come after the variables listed in the retain statement and remain in their current order.
+Then, to improve readability, you will go ahead and rename your variables, label your variables, and format your variables.
+Now your data is a little more user friendly, and you can continue on with conditional processing.
+For starters, in your class survey data there was a question that asked about the number of children under age 18 living in your home. Let’s say that you are really just interested in knowing if you have no children, one child, or more than one child – and you want to create a new variable called child3cat (for 3 categories) that captures this information. You can do this using IF-THEN statements.
+Here you see a common first attempt at completing this task. You are telling SAS if the value for the variable children is less than 1, then the value for the variable child3cat (which SAS will create if it doesn’t already exist) in the same observation should equal 0. Next if the value for the variable children is equal to 1, then the value for the variable child3cat in the same observation should equal 1. And finally, if the value for children is greater than 1, then the value for the variable child3cat in the same observation should equal 2. 
+So you can see that the variable child3cat was created, but you have a problem. SAS is categorizing students who didn’t answer the question about children as having no children. And it's possible that they don't have any children, but you don't have any way of knowing that, do you?
+Well, this is the frequency procedure. It starts the SAS keyword FREQ, followed by the data set containing your data. Instead of a VAR statement, PROC FREQ uses the TABLE statement. This will make more sense when you create two-way tables. For now you may just want to memorize this difference. Let's run it.
+As you can see, the FREQ procedure with one variable in the table statement produces a one-way frequency table. In the first column is the variable name and the categories for that variable. In the second column is the frequency, or number of times, that category is observed in the data. In the third column is the percent of the observations for that variable that fall within each respective category. The third and fourth columns are the cumulative frequency and percent respectively. Finally, notice at the bottom that SAS tells you the number of missing observations for this variable. Now let's compare this to your recoded 3-category variable.
+Before you run the second PROC FREQ, I want to point out that the way you have the table statement coded here tells SAS that you want two separate one-way frequency tables. One for the variable children, and one for the variable child3cat.
+Notice any problems? 
+You should. The frequencies of people without any children don’t match because you didn’t consider that SAS counts missing as the minimum value in your program. So, here is one way to fix this issue.
+This example is the easiest way. Just change the first if statement to read "if children equals zero then child3cat equals zero. But, other times, it may not be this straightforward. Here is another way you can write your code.
+Now you are telling SAS to code child3cat as zero if the value for children is greater than missing and it is also less than 1. Notice that you must type the word "children" before both logical expressions. And just to be sure you believe me, let’s run PROC FREQ again.
+There, now they match.
+Earlier you learned about the efficiency of adding the keyword ELSE to your IF-THEN statements. To take efficiency even one step further, you can code this data step in the following way: Here the first if statement uses the missing function. The missing function returns a value of true if the argument - the variable in parentheses – is missing, and a value of false if it is not missing. Then it moves on and evaluates the remaining if statements until one comes back true. Notice that you no longer need the "if children greater than missing" part to the second if statement. This is because missing has already been evaluated AND you are using if-then-else statements instead of just if-then statements.
+Now complete this practice using IF-THEN-ELSE statements
+This completes the video on conditional processing. It is almost impossible to overstate the importance of understanding how to manage your data using IF-THEN-ELSE statements. You will use them every time you conduct any sort of analysis in the real world, and a mistake in your conditional logic will likely invalidate all of your results. I encourage you to practice, practice, and then practice some more. The best way to reduce your chances of making a mistake in your conditional processing is experience.
