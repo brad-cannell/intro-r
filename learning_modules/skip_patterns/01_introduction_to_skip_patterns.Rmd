@@ -1,0 +1,28 @@
+---
+title: "Introduction to Skip Patterns"
+author: "Brad Cannell"
+date: "Created: 2019-08-01 <br> Updated: `r Sys.Date()`"
+output: 
+  html_notebook: 
+    css: "../../css/lm-markdown-styles.css"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<div style="border: solid 1px red;">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KbRtAF7LEg8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+# Helpful websites:
+
+
+adfnadf 
+a
+adfandf
+
+
+* afnadf a
+
+* andf
